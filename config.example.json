@@ -1,0 +1,9 @@
+{
+  "wow_addons_dir": "",
+  "ffmpeg": "",
+  "package": "SharedMedia_WoWVoice",
+  "display_name": "我的语音包",
+  "author_tag": "【我】",
+  "interface_version": "120100, 16001, 120105",
+  "voice_roots": ""
+}

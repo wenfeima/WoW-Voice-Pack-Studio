@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WoW 语音包工坊</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header>
+  <div class="brand">
+    <span class="logo">🎙</span>
+    <div>
+      <h1>WoW 语音包工坊</h1>
+      <p class="sub">批量生成 → 标准 SharedMedia 插件包 · 一键装进 AddOns</p>
+    </div>
+  </div>
+  <div class="badges" id="badges"></div>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" data-tab="make">① 批量生成</button>
+  <button class="tab" data-tab="list">② 语音清单</button>
+  <button class="tab" data-tab="pack">③ 打包安装</button>
+  <button class="tab" data-tab="set">④ 设置</button>
+</nav>
+
+<main>
+  <!-- ========== 批量生成 ========== -->
+  <section class="pane active" id="pane-make">
+    <div class="grid">
+      <div class="col-l">
+        <div class="card">
+          <div class="card-h">
+            <h2>台词表</h2>
+            <div class="row-actions">
+              <select id="corpusSel" class="mini"></select>
+              <button class="btn mini" id="btnLoadCorpus">载入</button>
+              <button class="btn mini" id="btnAppendCorpus">追加</button>
+            </div>
+          </div>
+          <textarea id="text" spellcheck="false" placeholder="每行一条：&#10;文件名|要说的话&#10;1分担|一分摊，注意站位&#10;转阶段|转阶段了"></textarea>
+          <div class="hint" id="lineHint">0 条</div>
+        </div>
+
+        <div class="card">
+          <h2>试听</h2>
+          <div class="row">
+            <input id="tryText" value="注意减伤，分摊站位" placeholder="输入一句话试听">
+            <button class="btn" id="btnTry">▶ 试听</button>
+          </div>
+          <audio id="player" controls style="width:100%;margin-top:8px"></audio>
+        </div>
+      </div>
+
+      <div class="col-r">
+        <div class="card">
+          <h2>生成参数</h2>
+          <label>音色
+            <select id="voice"></select>
+          </label>
+          <p class="hint" id="voiceTip" style="margin:-6px 0 12px"></p>
+
+          <label class="chk" style="margin-bottom:12px">
+            <input type="checkbox" id="autoTag" checked>
+            文件名自动带上音色标识（区分不同音色生成的同名语音）
+          </label>
+
+          <label id="rateWrap">语速 <span class="val" id="rateVal">0%</span>
+            <input type="range" id="rate" min="-30" max="30" step="5" value="0">
+          </label>
+          <label id="tempWrap" style="display:none">温度 <span class="val" id="tempVal">0.50</span>
+            <input type="range" id="temp" min="0.3" max="0.8" step="0.05" value="0.5">
+          </label>
+          <p class="hint" id="tempHint" style="display:none;margin:-6px 0 12px">
+            温度 = 采样随机度。<b>越低越稳、越可复现</b>，语音包建议 0.45~0.55；
+            调高（0.7+）会有随机变化，但也可能吃字、含糊。
+          </p>
+          <label class="sapi-only">系统语速 <span class="val" id="sapiRateVal">0</span>
+            <input type="range" id="sapiRate" min="-8" max="8" step="1" value="0">
+          </label>
+          <label>自定义前缀
+            <input id="tag" placeholder="【我】">
+          </label>
+          <p class="hint">生成的文件名 = <code>自定义前缀</code> + <code>音色标识</code> + <code>原名</code>，
+            例如 <code>【我】君仪2_1分担.ogg</code>。打包后前缀会显示在插件语音下拉里。</p>
+        </div>
+
+        <div class="card">
+          <div class="btn-row">
+            <button class="btn primary big" id="btnStart">🚀 开始生成</button>
+            <button class="btn danger" id="btnCancel">■ 停止</button>
+          </div>
+          <div class="progress"><div class="bar" id="bar"></div></div>
+          <div class="stat" id="stat">待命</div>
+          <div class="log" id="log"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 清单 ========== -->
+  <section class="pane" id="pane-list">
+    <div class="card">
+      <div class="card-h">
+        <h2>已生成语音 <span class="count" id="listCount">0</span></h2>
+        <div class="row-actions">
+          <button class="btn mini" id="btnOpenWork">📂 打开目录</button>
+          <button class="btn mini" id="btnRefresh">🔄 刷新</button>
+          <button class="btn mini danger" id="btnDelSel">🗑 删除选中</button>
+          <button class="btn mini danger" id="btnClearAll">🧹 清空全部</button>
+        </div>
+      </div>
+      <div class="list-head">
+        <input id="filter" placeholder="筛选文件名…">
+        <select id="voiceFilter" class="mini" style="width:auto;margin:0"></select>
+        <span id="listSize"></span>
+      </div>
+      <div class="list" id="list"></div>
+    </div>
+  </section>
+
+  <!-- ========== 打包 ========== -->
+  <section class="pane" id="pane-pack">
+    <div class="grid">
+      <div class="col-l">
+        <div class="card">
+          <h2>生成插件包</h2>
+          <label>包名（AddOns 里的文件夹名）
+            <input id="pkg" placeholder="SharedMedia_WoWVoice">
+          </label>
+          <label>显示名（插件设置里看到的名字）
+            <input id="disp" placeholder="我的语音包">
+          </label>
+
+          <label>打包哪些音色</label>
+          <div class="vpick" id="vpick">
+            <label class="chk vpick-all"><input type="checkbox" id="vAll" checked> 全部音色</label>
+            <div class="vpick-list" id="vpickList"></div>
+          </div>
+          <p class="hint">默认打包 <code>output/</code> 里<b>所有</b>语音。
+            勾选具体音色则只打包那几个人物的（例如只打「君仪2」做一套单独包）。</p>
+
+          <label class="chk"><input type="checkbox" id="groupVoice" checked> 按音色（人物）拆分目录 —— 游戏内语音下拉会按人物分组</label>
+          <p class="hint">勾选时：<code>media/君仪2/…</code>、<code>media/未来1/…</code>，
+            显示名变成 <code>君仪2/1分担</code>，下拉里一眼分开。
+            不勾选则全部平铺到 <code>media/</code>。</p>
+          <div class="btn-row">
+            <button class="btn primary" id="btnPack">📦 生成到 AddOns</button>
+            <button class="btn" id="btnZip">📥 导出 zip</button>
+          </div>
+          <p class="hint">生成结构与露露的 SharedMedia_Rurutia 一致：<code>.toc</code> + <code>MyMedia.lua</code>（LSM:Register）+ ogg 音频，44100Hz 立体声。</p>
+          <div class="result" id="packResult"></div>
+        </div>
+      </div>
+      <div class="col-r">
+        <div class="card">
+          <h2>它长这样</h2>
+          <pre class="tree">SharedMedia_WoWVoice/
+├── SharedMedia_WoWVoice.toc
+├── MyMedia.lua          ← LSM:Register("sound", ...)
+└── media/
+    ├── 君仪2/
+    │   ├── 1分担.ogg
+    │   └── 转阶段.ogg
+    └── 未来1/
+        ├── 1分担.ogg
+        └── 转阶段.ogg
+
+# MyMedia.lua 里的显示名：
+LSM:Register("sound", "君仪2/1分担", ...)
+LSM:Register("sound", "未来1/1分担", ...)</pre>
+          <p class="hint">装完重启游戏，在 EXBoss / BigWigs / WA 的语音下拉里按人物分组选。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 设置 ========== -->
+  <section class="pane" id="pane-set">
+    <div class="card">
+      <h2>路径与依赖</h2>
+      <label>WoW 的 AddOns 目录
+        <div class="row">
+          <input id="wowDir" placeholder="留空自动探测">
+          <button class="btn mini" id="btnScanWow">🔍 探测</button>
+          <button class="btn mini" id="btnOpenWow">📂</button>
+        </div>
+      </label>
+      <label>ffmpeg 路径
+        <div class="row">
+          <input id="ffDir" placeholder="留空自动探测">
+          <button class="btn mini" id="btnScanFf">🔍 探测</button>
+          <button class="btn mini" id="btnOpenFf">📂</button>
+        </div>
+      </label>
+      <label>TOC Interface 版本号
+        <input id="iface" placeholder="120100, 16001, 120105">
+      </label>
+      <label>自定义音色搜索目录（多个用 <code>;</code> 分隔）
+        <div class="row">
+          <input id="voiceRoots" placeholder="留空自动扫描 VoicePackMaker\export">
+          <button class="btn mini" id="btnOpenVr">📂</button>
+        </div>
+      </label>
+      <p class="hint">自动扫描的默认位置：<code>L:\工作流\VoicePackMaker\export</code>。
+        只要目录里有 <code>model.onnx</code> + <code>tokens.txt</code> + <code>lexicon.txt</code> 就会被识别为可用音色。</p>
+      <button class="btn primary" id="btnSave">💾 保存设置</button>
+      <div class="result" id="setResult"></div>
+    </div>
+    <div class="card">
+      <h2>环境自检</h2>
+      <div class="checks" id="checks"></div>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast"></div>
+<script src="/app.js"></script>
+</body>
+</html>

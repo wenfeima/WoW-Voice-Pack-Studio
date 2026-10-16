@@ -1,0 +1,22 @@
+# ===== 换行统一 =====
+# 源码 / 文本一律按 LF 存储与检出，避免跨机器 diff 全是整文件变更
+* text=auto eol=lf
+
+# Windows 批处理必须是 CRLF，否则 cmd 解析 label/goto 可能异常
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# ===== 二进制：禁止任何换行转换 =====
+*.ogg  binary
+*.mp3  binary
+*.wav  binary
+*.pt   binary
+*.onnx binary
+*.zip  binary
+*.exe  binary
+*.dll  binary
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.ico  binary
+*.ttf  binary
